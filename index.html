@@ -418,7 +418,18 @@
         const p = document.getElementById('prenom').value.trim().toUpperCase(); 
         const pwd = document.getElementById('password').value;
         
-        if (pwd === "admin00") { showView('admin-page'); renderAdmin(); return; }
+        if (pwd === "admin00") {
+    showView('admin-page');
+    document.getElementById('profiles-grid').innerHTML = "<p style='color: var(--color-text-light); font-family: var(--font-tech);'>Chargement des dossiers...</p>";
+    fetch(SCRIPT_URL)
+        .then(r => r.json())
+        .then(data => { database = data; renderAdmin(); })
+        .catch(err => {
+            console.error("Erreur chargement admin:", err);
+            document.getElementById('profiles-grid').innerHTML = "<p class='error-text'>Erreur de connexion aux archives.</p>";
+        });
+    return;
+}
         
         if (pwd === "POLICE" && n && p) {
             const isAllowed = allowedUsers.some(u => (u.nom === n && u.prenom === p) || (u.nom === p && u.prenom === n));
