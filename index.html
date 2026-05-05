@@ -90,7 +90,6 @@
         button.btn-secondary:hover:not(:disabled) { background: var(--color-text-light); color: #fff; }
         button.btn-back { width: auto; padding: 6px 15px; font-size: 0.85em; margin-bottom: 15px; display: inline-block; }
 
-        /* Vignette flottante des règles */
         #btn-rules-floating {
             position: fixed; top: 20px; right: 20px; width: auto; padding: 10px 20px; 
             background: var(--bg-page); color: #fff; border: 1px solid var(--border-ink); z-index: 100;
@@ -104,7 +103,6 @@
 
         .logo-police { display: block; margin: 0 auto 25px auto; width: 100px; height: 100px; object-fit: contain; opacity: 0.9; }
         
-        /* Style pour les images d'illustration des épreuves */
         .trial-img { display: block; width: 100%; max-width: 400px; height: auto; margin: 0 auto 20px auto; border: 1px solid var(--border-ink); border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); object-fit: cover; }
         .suspect-img { max-width: 120px; border: 1px solid var(--border-ink); border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; }
 
@@ -118,16 +116,20 @@
         .dialogue-block { padding-bottom: 15px; border-bottom: 1px solid #d1c8b8; font-style: italic; width: 100%; text-align: center; }
         .dialogue-block strong { font-style: normal; color: var(--color-primary); }
 
-        /* MODALE (Règles & Admin) */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.2s; backdrop-filter: blur(2px); }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-content { background: var(--bg-scroll); width: 90%; max-width: 600px; padding: 40px; border: 1px solid var(--border-ink); box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto;}
+        .modal-content { background: var(--bg-scroll); width: 90%; max-width: 600px; padding: 40px; border: 1px solid var(--border-ink); box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: translateY(20px); transition: 0.3s; max-height: 90vh; overflow-y: auto; position: relative;}
         .modal-overlay.active .modal-content { transform: translateY(0); }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5em; cursor: pointer; color: var(--color-text-light); transition: 0.2s; }
         .close-modal:hover { color: var(--color-error); }
 
         .rules-list { padding-left: 0; }
         .rules-list li { margin-bottom: 20px; font-size: 1.05em; line-height: 1.6; padding-left: 15px; border-left: 2px solid var(--color-primary); list-style: none; }
+
+        /* Loading spinner */
+        .loading-spinner { text-align: center; padding: 40px; font-family: var(--font-tech); color: var(--color-text-light); letter-spacing: 2px; }
+        .loading-spinner::after { content: ''; display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border-ink); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -155,9 +157,7 @@
             <span id="user-info">Agent : INCONNU</span> | 
             <span id="user-stats">Dossiers finis : 0/4</span>
         </div>
-        
         <h2>Menu Principal</h2>
-        
         <div class="menu-grid">
             <div class="menu-card" id="card-e1" onclick="launchTrial('e1')">
                 <h3 style="margin-top: 10px; font-size: 1.1em;">1. Code Secret</h3><p style="font-size: 0.9em; color: var(--color-text-light);">Trouver le bon mot.</p>
@@ -289,7 +289,7 @@
         <h2 style="border-bottom: 1px solid var(--border-ink); margin-bottom: 25px; text-align: left; color: var(--color-primary);">Les Règles Secrètes</h2>
         <ul class="rules-list">
             <li><strong>1. Observation :</strong> Le service des Renseignements Intérieurs n'intervient pas directement sur le terrain. L'objectif est l'acquisition et l'analyse de l'information.</li>
-            <li><strong>2. Opacité :</strong> L'appartenance au service ne doit jamais être divulguée à la police ou à des supérieurs de konoha. <em>Exceptions uniques : Le Commandant de la Police, la Direction des Renseignements, le Conseil du feu.</li>
+            <li><strong>2. Opacité :</strong> L'appartenance au service ne doit jamais être divulguée à la police ou à des supérieurs de konoha. <em>Exceptions uniques : Le Commandant de la Police, la Direction des Renseignements, le Conseil du feu.</em></li>
             <li><strong>3. Légitimité de Couverture :</strong> Toute personne dans le renseignements doit maintenir un alibi crédible justifiant sa présence dans les secteurs sensibles.</li>
             <li><strong>4. Pragmatique et Détachement :</strong> L'évaluation des menaces s'effectue sans biais émotionnel. L'intérêt supérieur du village prévaut sur l'individu.</li>
         </ul>
@@ -303,21 +303,26 @@
         <span class="close-modal" onclick="closeAdminModal()">&times;</span>
         <h2 id="modal-name" style="text-align: left; color: var(--color-primary); border-bottom: 1px solid var(--border-ink); padding-bottom: 10px;">Nom</h2>
         <div id="modal-stats-container" style="margin-top: 20px; font-family: var(--font-tech); font-size: 1.1em; line-height: 1.8;"></div>
+        <button onclick="deleteProfileFromModal()" class="btn-secondary" style="color: var(--color-error); border-color: var(--color-error); margin-top: 20px;">Supprimer ce dossier</button>
     </div>
 </div>
 
 <script>
-    /* --- CONFIGURATION ACCÈS --- */
+    /* =========================================================
+       CONFIGURATION ACCÈS
+    ========================================================= */
     const allowedUsers = [
-        { nom: "FUKURO", prenom: "HAYATO" },
-        { nom: "SOYAMA", prenom: "SEIJI" },
-        { nom: "TAKEDA", prenom: "KAITO" },
-        { nom: "INUZAN", prenom: "AKIRA" },
+        { nom: "FUKURO",   prenom: "HAYATO" },
+        { nom: "SOYAMA",   prenom: "SEIJI"  },
+        { nom: "TAKEDA",   prenom: "KAITO"  },
+        { nom: "INUZAN",   prenom: "AKIRA"  },
         { nom: "KUROKAZE", prenom: "NANAMI" },
-        { nom: "REN", prenom: "TENSHI" }
+        { nom: "REN",      prenom: "TENSHI" }
     ];
 
-    /* --- SYSTEME AUDIO & VFX --- */
+    /* =========================================================
+       AUDIO & VFX
+    ========================================================= */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playTone(freq, type, duration, vol=0.05) {
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -327,9 +332,9 @@
         osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
     function playSound(type) {
-        if(type === 'click') { playTone(500, 'sine', 0.1, 0.03); }
-        if(type === 'success') { playTone(300, 'sine', 0.1); setTimeout(()=>playTone(450, 'sine', 0.2), 100); setTimeout(()=>playTone(600, 'sine', 0.4), 200); }
-        if(type === 'error') { playTone(120, 'triangle', 0.3, 0.1); setTimeout(()=>playTone(90, 'triangle', 0.4, 0.1), 150); triggerErrorVFX(); }
+        if(type === 'click')   { playTone(500, 'sine', 0.1, 0.03); }
+        if(type === 'success') { playTone(300,'sine',0.1); setTimeout(()=>playTone(450,'sine',0.2),100); setTimeout(()=>playTone(600,'sine',0.4),200); }
+        if(type === 'error')   { playTone(120,'triangle',0.3,0.1); setTimeout(()=>playTone(90,'triangle',0.4,0.1),150); triggerErrorVFX(); }
     }
     function triggerErrorVFX() {
         const body = document.body; const container = document.getElementById('main-container');
@@ -338,105 +343,135 @@
     }
     document.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON' && !e.target.disabled) playSound('click'); });
 
-    /* --- GESTION MODALES --- */
-    function showRulesModal() { document.getElementById('rules-modal').classList.add('active'); }
+    /* =========================================================
+       MODALES
+    ========================================================= */
+    function showRulesModal()  { document.getElementById('rules-modal').classList.add('active'); }
     function closeRulesModal() { document.getElementById('rules-modal').classList.remove('active'); }
-    function closeAdminModal() { document.getElementById('profile-modal').classList.remove('active'); }
+    function closeAdminModal() { document.getElementById('profile-modal').classList.remove('active'); currentModalUserId = null; }
 
-    /* --- BASE DE DONNÉES EN LIGNE (GOOGLE SHEETS) --- */
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBALly63LwXZfwGGht0-3dS-pohFitWeBkvOC8lBF_D7-5ovmZVONa7K4jpvBv8BYhQA/exec"; // <-- METS TON URL ICI
-    let database = [];
-    let currentUser = null; 
+    /* =========================================================
+       BASE DE DONNÉES — Google Sheets via Apps Script
+       IMPORTANT : remplace SCRIPT_URL par ta propre URL de déploiement
+    ========================================================= */
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBALly63LwXZfwGGht0-3dS-pohFitWeBkvOC8lBF_D7-5ovmZVONa7K4jpvBv8BYhQA/exec";
 
-    // Au chargement de la page, on récupère les données du serveur
-    window.onload = async function() {
-        try {
-            const response = await fetch(SCRIPT_URL);
-            database = await response.json();
-            console.log("Base de données chargée !", database);
-        } catch(e) {
-            console.error("Erreur de connexion aux archives", e);
-        }
-    };
+    let database = [];
+    let currentUser = null;
+    let currentModalUserId = null;
 
-    async function saveDatabase() {
-        if (currentUser) {
-            // Met à jour localement pour que l'affichage soit instantané
-            const index = database.findIndex(u => u.id === currentUser.id);
-            if (index !== -1) database[index] = currentUser; else database.push(currentUser);
-            
-            // Envoie en arrière-plan vers Google Sheets
-            fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "save", user: currentUser })
-            });
-        }
-    }
+    /* --- Fetch GET avec gestion CORS/redirect --- */
+    async function fetchDatabase() {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'GET',
+            redirect: 'follow',
+            mode: 'cors'
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.json();
+    }
 
-    async function clearDatabase() {
-        playSound('error');
-        if(confirm("Êtes-vous sûr de vouloir effacer TOUS les résultats ?")) { 
-            database = []; 
-            document.getElementById('profiles-grid').innerHTML = "";
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "clear" })
-            });
-        }
-    }
+    /* --- Fetch POST avec Content-Type text/plain (évite le preflight CORS) --- */
+    async function postToSheet(payload) {
+        return fetch(SCRIPT_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload)
+        });
+    }
 
-    async function deleteProfile(id) {
-        playSound('error');
-        if(confirm("Êtes-vous sûr de vouloir supprimer définitivement le dossier de cet agent ?")) {
-            database = database.filter(u => u.id !== id);
-            closeAdminModal();
-            renderAdmin();
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ action: "delete", id: id })
-            });
-        }
-    }
+    /* Chargement initial au démarrage de la page */
+    window.onload = async function() {
+        try {
+            database = await fetchDatabase();
+            console.log("Base de données chargée !", database);
+        } catch(e) {
+            console.warn("Chargement initial échoué (sera rechargé à la connexion admin) :", e);
+        }
+    };
 
-    /* --- NAVIGATION --- */
+    async function saveDatabase() {
+        if (!currentUser) return;
+        const index = database.findIndex(u => u.id === currentUser.id);
+        if (index !== -1) database[index] = currentUser; else database.push(currentUser);
+        try {
+            await postToSheet({ action: "save", user: currentUser });
+        } catch(e) {
+            console.error("Erreur sauvegarde :", e);
+        }
+    }
+
+    async function clearDatabase() {
+        playSound('error');
+        if(confirm("Êtes-vous sûr de vouloir effacer TOUS les résultats ?")) {
+            database = [];
+            document.getElementById('profiles-grid').innerHTML = "";
+            try {
+                await postToSheet({ action: "clear" });
+            } catch(e) { console.error("Erreur clear :", e); }
+        }
+    }
+
+    async function deleteProfile(id) {
+        playSound('error');
+        if(confirm("Supprimer définitivement ce dossier ?")) {
+            database = database.filter(u => u.id !== id);
+            closeAdminModal();
+            renderAdmin();
+            try {
+                await postToSheet({ action: "delete", id: id });
+            } catch(e) { console.error("Erreur delete :", e); }
+        }
+    }
+
+    function deleteProfileFromModal() {
+        if (currentModalUserId) deleteProfile(currentModalUserId);
+    }
+
+    /* =========================================================
+       NAVIGATION
+    ========================================================= */
     function showView(viewId) {
-        ['login-page','main-menu','epreuve1','epreuve2','epreuve3','epreuve4','admin-page'].forEach(v => document.getElementById(v)?.classList.add('hidden'));
+        ['login-page','main-menu','epreuve1','epreuve2','epreuve3','epreuve4','admin-page']
+            .forEach(v => document.getElementById(v)?.classList.add('hidden'));
         document.getElementById(viewId).classList.remove('hidden');
     }
+
     function returnToMenu() { saveDatabase(); updateMenuUI(); showView('main-menu'); }
-    
+
     function abortTrial() {
-        document.getElementById('crypto-answer').value = ""; 
+        document.getElementById('crypto-answer').value = "";
         returnToMenu();
     }
 
-    function login() {
-        const n = document.getElementById('nom').value.trim().toUpperCase(); 
-        const p = document.getElementById('prenom').value.trim().toUpperCase(); 
+    async function login() {
+        const n   = document.getElementById('nom').value.trim().toUpperCase();
+        const p   = document.getElementById('prenom').value.trim().toUpperCase();
         const pwd = document.getElementById('password').value;
-        
+
+        /* --- ADMIN --- */
         if (pwd === "admin00") {
-    showView('admin-page');
-    document.getElementById('profiles-grid').innerHTML = "<p style='color: var(--color-text-light); font-family: var(--font-tech);'>Chargement des dossiers...</p>";
-    fetch(SCRIPT_URL)
-        .then(r => r.json())
-        .then(data => { database = data; renderAdmin(); })
-        .catch(err => {
-            console.error("Erreur chargement admin:", err);
-            document.getElementById('profiles-grid').innerHTML = "<p class='error-text'>Erreur de connexion aux archives.</p>";
-        });
-    return;
-}
-        
-        if (pwd === "POLICE" && n && p) {
-            const isAllowed = allowedUsers.some(u => (u.nom === n && u.prenom === p) || (u.nom === p && u.prenom === n));
-            
-            if (!isAllowed) {
-                playSound('error'); alert("Erreur : Votre nom n'est pas sur la liste."); return;
+            showView('admin-page');
+            document.getElementById('profiles-grid').innerHTML =
+                '<div class="loading-spinner" style="grid-column:1/-1; padding: 40px;">Chargement des dossiers</div>';
+            try {
+                database = await fetchDatabase();
+                renderAdmin();
+            } catch(err) {
+                console.error("Erreur admin fetch :", err);
+                document.getElementById('profiles-grid').innerHTML =
+                    '<p class="error-text" style="grid-column:1/-1; padding: 20px;">Erreur de connexion aux archives.<br><small style="font-family:var(--font-tech); color:var(--color-text-light);">' + err.message + '</small></p>';
             }
+            return;
+        }
+
+        /* --- AGENT --- */
+        if (pwd === "POLICE" && n && p) {
+            const isAllowed = allowedUsers.some(u =>
+                (u.nom === n && u.prenom === p) || (u.nom === p && u.prenom === n)
+            );
+            if (!isAllowed) { playSound('error'); alert("Erreur : Votre nom n'est pas sur la liste."); return; }
 
             let u = database.find(x => (x.nom === n && x.prenom === p) || (x.nom === p && x.prenom === n));
             if (!u) {
@@ -444,18 +479,28 @@
                 ['e1','e2','e3','e4'].forEach(k => u.trials[k] = { started:false, completed:false, passed:false });
                 database.push(u);
             }
-            currentUser = u; saveDatabase(); 
-            
+            currentUser = u;
+            saveDatabase();
+
             document.getElementById('btn-rules-floating').classList.remove('hidden');
             showRulesModal();
-
-            updateMenuUI(); showView('main-menu'); playSound('success');
-        } else { playSound('error'); alert("Mot de passe ou nom faux."); }
+            updateMenuUI();
+            showView('main-menu');
+            playSound('success');
+        } else {
+            playSound('error');
+            alert("Mot de passe ou nom faux.");
+        }
     }
-    
-    function logout() { 
-        saveDatabase(); currentUser = null; document.getElementById('btn-rules-floating').classList.add('hidden');
-        document.getElementById('nom').value=""; document.getElementById('prenom').value=""; document.getElementById('password').value=""; showView('login-page'); 
+
+    function logout() {
+        saveDatabase();
+        currentUser = null;
+        document.getElementById('btn-rules-floating').classList.add('hidden');
+        document.getElementById('nom').value = "";
+        document.getElementById('prenom').value = "";
+        document.getElementById('password').value = "";
+        showView('login-page');
     }
 
     function updateMenuUI() {
@@ -473,21 +518,27 @@
         if(currentUser.trials[k].completed) return;
         currentUser.trials[k].started = true; saveDatabase();
         if(k==='e1') showView('epreuve1');
-        if(k==='e2') { 
-            document.getElementById('dialogue-history').innerHTML="<em style='text-align:center; color: var(--color-text-light); display:block; margin-top: 20px;'>Choisissez quelqu'un à écouter.</em>"; 
-            document.getElementById('dialogue-options').innerHTML=""; 
+        if(k==='e2') {
+            document.getElementById('dialogue-history').innerHTML = "<em style='text-align:center; color: var(--color-text-light); display:block; margin-top: 20px;'>Choisissez quelqu'un à écouter.</em>";
+            document.getElementById('dialogue-options').innerHTML = "";
             document.getElementById('e2-actions-area').classList.add('hidden');
-            showView('epreuve2'); 
+            document.getElementById('e2-result-area').classList.add('hidden');
+            showView('epreuve2');
         }
-        if(k==='e3') { currentE3Step=0; currentE3Score=0; loadE3(); showView('epreuve3'); }
-        if(k==='e4') { currentE4Step=0; currentE4Score=0; loadE4(); showView('epreuve4'); }
+        if(k==='e3') { currentE3Step=0; currentE3Score=0; document.getElementById('e3-situation-container').classList.remove('hidden'); document.getElementById('e3-result-area').classList.add('hidden'); loadE3(); showView('epreuve3'); }
+        if(k==='e4') { currentE4Step=0; currentE4Score=0; document.getElementById('e4-situation-container').classList.remove('hidden'); document.getElementById('e4-result-area').classList.add('hidden'); loadE4(); showView('epreuve4'); }
     }
+
     function endTrial(k, passed) {
-        currentUser.trials[k].completed = true; currentUser.trials[k].passed = passed; saveDatabase();
+        currentUser.trials[k].completed = true;
+        currentUser.trials[k].passed = passed;
+        saveDatabase();
         if(passed) playSound('success'); else playSound('error');
     }
 
-    /* --- E1 : CRYPTO --- */
+    /* =========================================================
+       E1 : CRYPTO
+    ========================================================= */
     function checkCrypto() {
         const a = document.getElementById('crypto-answer').value.toUpperCase().trim();
         document.getElementById('btn-submit-e1').disabled = true;
@@ -495,25 +546,27 @@
         document.getElementById('crypto-result-title').innerText = passed ? "BRAVO" : "FAUX";
         document.getElementById('crypto-result-title').className = passed ? "success-text" : "error-text";
         document.getElementById('crypto-result-desc').innerText = passed ? "C'est le bon mot de passe." : "Ce n'est pas le bon mot.";
-        endTrial('e1', passed); document.getElementById('e1-result-area').classList.remove('hidden');
+        endTrial('e1', passed);
+        document.getElementById('e1-result-area').classList.remove('hidden');
     }
 
-    /* --- E2 : INVESTIGATION --- */
-    const D = { 
-        'grand-mere': { nom:"La dame", img: "mamie.png", t:"J'ai entendu un gros boum, puis un bruit de vapeur comme une marmite. Il n'y avait pas de lumière, la rue était toute noire.", opts:[] }, 
-        'genin': { nom:"Le jeune", img: "genin.png", t:"Ce n'est pas moi ! Mon bras droit est bloqué par le docteur. Je ne peux pas faire de magie ninja !", opts:[] }, 
-        'jonin': { nom:"Le ninja fort", img: "jonin.png", t:"J'ai vu le jeune taper dans la porte avec ses pieds. Ensuite, j'ai vu de très grandes flammes éclairer toute la rue.", opts:[] } 
+    /* =========================================================
+       E2 : INVESTIGATION
+    ========================================================= */
+    const D = {
+        'grand-mere': { nom:"La dame",     img:"mamie.png",  t:"J'ai entendu un gros boum, puis un bruit de vapeur comme une marmite. Il n'y avait pas de lumière, la rue était toute noire." },
+        'genin':      { nom:"Le jeune",    img:"genin.png",  t:"Ce n'est pas moi ! Mon bras droit est bloqué par le docteur. Je ne peux pas faire de magie ninja !" },
+        'jonin':      { nom:"Le ninja fort",img:"jonin.png", t:"J'ai vu le jeune taper dans la porte avec ses pieds. Ensuite, j'ai vu de très grandes flammes éclairer toute la rue." }
     };
     let currentSuspectE2 = null;
 
-    function startInterrogation(k) { 
-        currentSuspectE2 = k; 
+    function startInterrogation(k) {
+        currentSuspectE2 = k;
         document.getElementById('dialogue-history').innerHTML = `
             <img src="${D[k].img}" alt="${D[k].nom}" class="suspect-img" onerror="this.style.display='none'">
             <div class="dialogue-block"><strong>Ce que dit ${D[k].nom} :</strong><br><br>"${D[k].t}"</div>
-        `; 
+        `;
         document.getElementById('dialogue-options').innerHTML = "<em style='color: var(--color-text-light); font-size: 0.9em;'>Il n'a rien d'autre à dire.</em>";
-        
         document.getElementById('current-suspect-name').innerText = D[k].nom;
         document.getElementById('e2-actions-area').classList.remove('hidden');
     }
@@ -530,10 +583,12 @@
     function actionTransmettre() {
         if(!currentSuspectE2) return;
         document.getElementById('e2-actions-area').classList.add('hidden');
-        const passed = (currentSuspectE2 === 'jonin'); 
+        const passed = (currentSuspectE2 === 'jonin');
         document.getElementById('interro-result-title').innerText = passed ? "TRÈS BIEN" : "MAUVAIS COUPABLE";
         document.getElementById('interro-result-title').className = passed ? "success-text" : "error-text";
-        document.getElementById('interro-result-desc').innerText = passed ? "Bravo. C'est le Jonin qui mentait. Et vous avez bien fait de laisser la police normale l'arrêter." : "Vous avez donné le mauvais nom à la police. Le vrai voleur s'est enfui.";
+        document.getElementById('interro-result-desc').innerText = passed
+            ? "Bravo. C'est le Jonin qui mentait. Et vous avez bien fait de laisser la police normale l'arrêter."
+            : "Vous avez donné le mauvais nom à la police. Le vrai voleur s'est enfui.";
         endTrial('e2', passed); document.getElementById('e2-result-area').classList.remove('hidden');
     }
 
@@ -546,159 +601,150 @@
         endTrial('e2', false); document.getElementById('e2-result-area').classList.remove('hidden');
     }
 
-    /* --- E3 : 3 DILEMMES R.I. --- */
-    const E3=[ 
+    /* =========================================================
+       E3 : DILEMMES
+    ========================================================= */
+    const E3 = [
         {
-            t:"L'ennemi empoisonné",
-            d:"Un ennemi a été empoisonné. Il connaît un grand secret. Il va mourir dans 3 minutes et ne veut rien dire s'il n'a pas de médicament.",
-            o:[
-                {t:"Fouiller ses poches pour trouver des papiers.",s:0, r:"Mauvais choix. S'il meurt, son secret est perdu pour toujours."},
-                {t:"Lui donner un remède rare pour qu'il parle.",s:1, r:"Bon choix. Obtenir le secret est plus important que de garder le médicament."},
-                {t:"Le taper pour le faire parler plus vite.",s:0, r:"Mauvais choix. Il va juste mourir plus vite à cause du poison."}
+            t: "L'ennemi empoisonné",
+            d: "Un ennemi a été empoisonné. Il connaît un grand secret. Il va mourir dans 3 minutes et ne veut rien dire s'il n'a pas de médicament.",
+            o: [
+                { t:"Fouiller ses poches pour trouver des papiers.", s:0, r:"Mauvais choix. S'il meurt, son secret est perdu pour toujours." },
+                { t:"Lui donner un remède rare pour qu'il parle.",    s:1, r:"Bon choix. Obtenir le secret est plus important que de garder le médicament." },
+                { t:"Le taper pour le faire parler plus vite.",        s:0, r:"Mauvais choix. Il va juste mourir plus vite à cause du poison." }
             ]
-        }, 
+        },
         {
-            t:"Le voleur et l'enfant",
-            d:"Un grand criminel s'enfuit avec des papiers très secrets. Sur la route, il prend un enfant en otage dans une maison.",
-            o:[
-                {t:"Sauver l'enfant tout de suite.",s:0, r:"Mauvais choix. Les papiers secrets sont plus importants pour tout le village."},
-                {t:"Tuer le criminel pour reprendre les papiers d'abord.",s:1, r:"Bon choix. C'est triste, mais le village passe avant l'enfant."}
+            t: "Le voleur et l'enfant",
+            d: "Un grand criminel s'enfuit avec des papiers très secrets. Sur la route, il prend un enfant en otage dans une maison.",
+            o: [
+                { t:"Sauver l'enfant tout de suite.",                            s:0, r:"Mauvais choix. Les papiers secrets sont plus importants pour tout le village." },
+                { t:"Tuer le criminel pour reprendre les papiers d'abord.",      s:1, r:"Bon choix. C'est triste, mais le village passe avant l'enfant." }
             ]
-        }, 
+        },
         {
-            t:"Le mauvais ami",
-            d:"Vous savez qu'un policier que vous aimez bien vend des secrets à des bandits pour gagner de l'argent.",
-            o:[
-                {t:"Aller lui parler pour comprendre pourquoi il fait ça.",s:0, r:"Mauvais choix. Un espion n'a pas d'amis, il obéit seulement aux lois."},
-                {t:"Dire son nom au chef tout de suite pour l'arrêter.",s:1, r:"Bon choix. Il faut protéger le village et punir les traîtres."}
+            t: "Le mauvais ami",
+            d: "Vous savez qu'un policier que vous aimez bien vend des secrets à des bandits pour gagner de l'argent.",
+            o: [
+                { t:"Aller lui parler pour comprendre pourquoi il fait ça.",     s:0, r:"Mauvais choix. Un espion n'a pas d'amis, il obéit seulement aux lois." },
+                { t:"Dire son nom au chef tout de suite pour l'arrêter.",        s:1, r:"Bon choix. Il faut protéger le village et punir les traîtres." }
             ]
-        } 
+        }
     ];
-    let currentE3Step=0, currentE3Score=0;
-    
+    let currentE3Step = 0, currentE3Score = 0;
+
     function loadE3() {
-        if(currentE3Step >= 3){
+        if(currentE3Step >= 3) {
             const passed = (currentE3Score >= 2);
             document.getElementById('e3-situation-container').classList.add('hidden');
             document.getElementById('dilemma-result-title').innerText = passed ? "BON ESPION" : "MAUVAIS ESPION";
             document.getElementById('dilemma-result-title').className = passed ? "success-text" : "error-text";
-            document.getElementById('dilemma-result-desc').innerText = passed ? "Bravo. Vous pensez à la mission avant tout." : "Vous êtes trop gentil ou vous ne pensez pas assez au village. Ce n'est pas bon pour un espion.";
-            endTrial('e3', passed); document.getElementById('e3-result-area').classList.remove('hidden'); return;
+            document.getElementById('dilemma-result-desc').innerText = passed
+                ? "Bravo. Vous pensez à la mission avant tout."
+                : "Vous êtes trop gentil ou vous ne pensez pas assez au village. Ce n'est pas bon pour un espion.";
+            endTrial('e3', passed);
+            document.getElementById('e3-result-area').classList.remove('hidden');
+            return;
         }
         document.getElementById('e3-step-counter').innerText = `Histoire n°${currentE3Step+1} / 3`;
-        document.getElementById('e3-sit-title').innerText = E3[currentE3Step].t; 
-        document.getElementById('e3-sit-desc').innerText = E3[currentE3Step].d;
-        
-        const box = document.getElementById('e3-options'); 
-        box.innerHTML="";
-        
-        E3[currentE3Step].o.forEach(opt=>{ 
-            const b=document.createElement('button'); 
-            b.innerText=opt.t; 
-            b.style.textTransform="none"; 
-            b.style.textAlign="left";
-            b.onclick=()=>{ showE3Feedback(opt); }; 
-            box.appendChild(b); 
+        document.getElementById('e3-sit-title').innerText = E3[currentE3Step].t;
+        document.getElementById('e3-sit-desc').innerText  = E3[currentE3Step].d;
+        const box = document.getElementById('e3-options'); box.innerHTML = "";
+        E3[currentE3Step].o.forEach(opt => {
+            const b = document.createElement('button');
+            b.innerText = opt.t; b.style.textTransform = "none"; b.style.textAlign = "left";
+            b.onclick = () => showE3Feedback(opt);
+            box.appendChild(b);
         });
     }
 
     function showE3Feedback(opt) {
         currentE3Score += opt.s;
         if(opt.s > 0) playSound('success'); else playSound('error');
-
         const box = document.getElementById('e3-options');
-        const titleClass = opt.s > 0 ? "success-text" : "error-text";
-        const titleText = opt.s > 0 ? "BON CHOIX" : "MAUVAIS CHOIX";
-
         box.innerHTML = `
-            <h4 class="${titleClass}" style="margin-bottom: 10px; font-size: 1.2em;">${titleText}</h4>
+            <h4 class="${opt.s > 0 ? 'success-text' : 'error-text'}" style="margin-bottom: 10px; font-size: 1.2em;">${opt.s > 0 ? 'BON CHOIX' : 'MAUVAIS CHOIX'}</h4>
             <p style="margin-bottom: 20px; color: var(--color-text);">${opt.r}</p>
             <button onclick="nextE3Step()" style="background: var(--color-primary); color: white;">Passer à la suite</button>
         `;
     }
 
-    function nextE3Step() {
-        currentE3Step++;
-        loadE3();
-    }
+    function nextE3Step() { currentE3Step++; loadE3(); }
 
-    /* --- E4 : MISE EN SITUATION (JEU DE RÔLE) --- */
-    const E4=[ 
+    /* =========================================================
+       E4 : JEU DE RÔLE
+    ========================================================= */
+    const E4 = [
         {
-            t:"L'Interrogatoire Imprévu",
-            d:"Vous fouillez discrètement les archives. Tsukiko (Supérieure de la Police régulière) vous surprend : 'Hé ! Qu'est-ce que tu fais ici ? T'es censé être en patrouille !'",
-            o:[
-                { t:"'Je ne peux pas le dire, ordre du commandant.'", nextStep: 1, s:0, r:"Passable. Mais cela la rend méfiante et elle va insister pour en savoir plus." },
-                { t:"'Je suis des Renseignements, mission secrète.'", nextStep: 99, s:-1, r:"Erreur grave ! Vous avez révélé votre identité secrète et brisé la Règle 2." },
-                { t:"*S'enfuir en courant sans répondre*", nextStep: 99, s:-1, r:"Mauvais choix. Fuir vous rend immédiatement suspect et coupable." }
+            t: "L'Interrogatoire Imprévu",
+            d: "Vous fouillez discrètement les archives. Tsukiko (Supérieure de la Police régulière) vous surprend : 'Hé ! Qu'est-ce que tu fais ici ? T'es censé être en patrouille !'",
+            o: [
+                { t:"'Je ne peux pas le dire, ordre du commandant.'",   nextStep:1,  s:0,  r:"Passable. Mais cela la rend méfiante et elle va insister pour en savoir plus." },
+                { t:"'Je suis des Renseignements, mission secrète.'",   nextStep:99, s:-1, r:"Erreur grave ! Vous avez révélé votre identité secrète et brisé la Règle 2." },
+                { t:"*S'enfuir en courant sans répondre*",              nextStep:99, s:-1, r:"Mauvais choix. Fuir vous rend immédiatement suspect et coupable." }
             ]
         },
         {
-            t:"L'Insistance de Tsukiko",
-            d:"Tsukiko s'énerve : 'Je m'en fiche des ordres mystères, je suis ta supérieure directe ici ! Parle ou je te fais arrêter !'",
-            o:[
-                { t:"'C'est un dossier classifié. Veuillez voir avec le Commandant.'", nextStep: 2, s:1, r:"Très bien. Vous restez calme et utilisez la logique de votre hiérarchie." },
-                { t:"'Je cherchais juste le formulaire d'arrêt maladie de Kaito...'", nextStep: 2, s:1, r:"Bon choix. Une fausse excuse banale est parfaite pour endormir les soupçons." },
-                { t:"'D'accord... je vérifie les affaires du braqueur d'hier.'", nextStep: 99, s:-1, r:"Échec. Vous avez craqué sous la pression et révélé des informations secrètes." }
+            t: "L'Insistance de Tsukiko",
+            d: "Tsukiko s'énerve : 'Je m'en fiche des ordres mystères, je suis ta supérieure directe ici ! Parle ou je te fais arrêter !'",
+            o: [
+                { t:"'C'est un dossier classifié. Veuillez voir avec le Commandant.'", nextStep:2,  s:1,  r:"Très bien. Vous restez calme et utilisez la logique de votre hiérarchie." },
+                { t:"'Je cherchais juste le formulaire d'arrêt maladie de Kaito...'",  nextStep:2,  s:1,  r:"Bon choix. Une fausse excuse banale est parfaite pour endormir les soupçons." },
+                { t:"'D'accord... je vérifie les affaires du braqueur d'hier.'",        nextStep:99, s:-1, r:"Échec. Vous avez craqué sous la pression et révélé des informations secrètes." }
             ]
         },
         {
-            t:"Le Ninja Ivre",
-            d:"Vous sortez dans la rue. Un policier régulier vous appelle à l'aide pour maîtriser un ninja très violent et ivre qui détruit tout.",
-            o:[
-                { t:"L'aider à se battre.", nextStep: 99, s:-1, r:"Erreur. Le Renseignement n'intervient jamais directement dans les bagarres (Règle 1)." },
-                { t:"Observer de loin et noter ses techniques.", nextStep: 3, s:1, r:"Parfait. Observer sans agir est exactement votre travail." },
-                { t:"Dire que vous êtes occupé et partir.", nextStep: 3, s:1, r:"Acceptable. Vous gardez votre couverture en simulant une patrouille occupée." }
+            t: "Le Ninja Ivre",
+            d: "Vous sortez dans la rue. Un policier régulier vous appelle à l'aide pour maîtriser un ninja très violent et ivre qui détruit tout.",
+            o: [
+                { t:"L'aider à se battre.",                             nextStep:99,  s:-1, r:"Erreur. Le Renseignement n'intervient jamais directement dans les bagarres (Règle 1)." },
+                { t:"Observer de loin et noter ses techniques.",         nextStep:3,   s:1,  r:"Parfait. Observer sans agir est exactement votre travail." },
+                { t:"Dire que vous êtes occupé et partir.",              nextStep:3,   s:1,  r:"Acceptable. Vous gardez votre couverture en simulant une patrouille occupée." }
             ]
         },
         {
-            t:"Le Document Perdu",
-            d:"En rentrant, vous trouvez un document top-secret tombé de la poche d'un membre du Conseil du Feu qui marche devant vous.",
-            o:[
-                { t:"Le lire discrètement et le remettre par terre.", nextStep: 100, s:1, r:"Excellent. Vous prenez l'information en secret, sans laisser aucune trace." },
-                { t:"Lui rendre directement en disant l'avoir lu.", nextStep: 99, s:-1, r:"Mauvais choix. Vous vous êtes grillé en avouant avoir lu un document si secret." },
-                { t:"Le déposer aux objets trouvés.", nextStep: 100, s:0, r:"Passable. Mais vous avez raté une bonne occasion de lire des informations." }
+            t: "Le Document Perdu",
+            d: "En rentrant, vous trouvez un document top-secret tombé de la poche d'un membre du Conseil du Feu qui marche devant vous.",
+            o: [
+                { t:"Le lire discrètement et le remettre par terre.",              nextStep:100, s:1,  r:"Excellent. Vous prenez l'information en secret, sans laisser aucune trace." },
+                { t:"Lui rendre directement en disant l'avoir lu.",                nextStep:99,  s:-1, r:"Mauvais choix. Vous vous êtes grillé en avouant avoir lu un document si secret." },
+                { t:"Le déposer aux objets trouvés.",                              nextStep:100, s:0,  r:"Passable. Mais vous avez raté une bonne occasion de lire des informations." }
             ]
         }
     ];
-    let currentE4Step=0, currentE4Score=0;
-    
+    let currentE4Step = 0, currentE4Score = 0;
+
     function loadE4() {
         if(currentE4Step === 99 || currentE4Step === 100) {
             const passed = (currentE4Step === 100 && currentE4Score >= 2);
             document.getElementById('e4-situation-container').classList.add('hidden');
             document.getElementById('e4-result-title').innerText = passed ? "SECRET GARDÉ" : "SECRET DÉCOUVERT";
             document.getElementById('e4-result-title').className = passed ? "success-text" : "error-text";
-            document.getElementById('e4-result-desc').innerText = passed ? "Bravo." : "Vous avez été découvert ! Vous avez parlé, agi ou fui alors qu'il ne fallait pas.";
-            endTrial('e4', passed); document.getElementById('e4-result-area').classList.remove('hidden'); return;
+            document.getElementById('e4-result-desc').innerText = passed
+                ? "Bravo."
+                : "Vous avez été découvert ! Vous avez parlé, agi ou fui alors qu'il ne fallait pas.";
+            endTrial('e4', passed);
+            document.getElementById('e4-result-area').classList.remove('hidden');
+            return;
         }
-
-        document.getElementById('e4-step-counter').innerText = `Ce qui se passe :`;
-        document.getElementById('e4-sit-title').innerText = E4[currentE4Step].t; 
-        document.getElementById('e4-sit-desc').innerText = E4[currentE4Step].d;
-        
-        const box = document.getElementById('e4-options'); box.innerHTML="";
-        
-        E4[currentE4Step].o.forEach(opt=>{ 
-            const b=document.createElement('button'); 
-            b.innerText=opt.t; 
-            b.style.textTransform="none"; 
-            b.style.textAlign="left";
-            b.onclick=()=>{ showE4Feedback(opt); }; 
-            box.appendChild(b); 
+        document.getElementById('e4-step-counter').innerText = "Ce qui se passe :";
+        document.getElementById('e4-sit-title').innerText = E4[currentE4Step].t;
+        document.getElementById('e4-sit-desc').innerText  = E4[currentE4Step].d;
+        const box = document.getElementById('e4-options'); box.innerHTML = "";
+        E4[currentE4Step].o.forEach(opt => {
+            const b = document.createElement('button');
+            b.innerText = opt.t; b.style.textTransform = "none"; b.style.textAlign = "left";
+            b.onclick = () => showE4Feedback(opt);
+            box.appendChild(b);
         });
     }
 
     function showE4Feedback(opt) {
         currentE4Score += opt.s;
         if(opt.s >= 0) playSound('success'); else playSound('error');
-
         const box = document.getElementById('e4-options');
-        const titleClass = opt.s >= 0 ? "success-text" : "error-text";
-        let titleText = "ERREUR";
-        if (opt.s > 0) titleText = "TRÈS BIEN";
-        else if (opt.s === 0) titleText = "PASSABLE";
-
+        let titleText = opt.s > 0 ? "TRÈS BIEN" : (opt.s === 0 ? "PASSABLE" : "ERREUR");
+        let titleClass = opt.s >= 0 ? "success-text" : "error-text";
         box.innerHTML = `
             <h4 class="${titleClass}" style="margin-bottom: 10px; font-size: 1.2em;">${titleText}</h4>
             <p style="margin-bottom: 20px; color: var(--color-text);">${opt.r}</p>
@@ -706,29 +752,38 @@
         `;
     }
 
-    function nextE4Step(nextId) {
-        currentE4Step = nextId;
-        loadE4();
-    }
+    function nextE4Step(nextId) { currentE4Step = nextId; loadE4(); }
 
-    /* --- ADMIN --- */
+    /* =========================================================
+       ADMIN
+    ========================================================= */
     function renderAdmin() {
-        const g=document.getElementById('profiles-grid'); g.innerHTML="";
-        database.forEach(u=>{
-            let ok=0; ['e1','e2','e3','e4'].forEach(k=>{if(u.trials[k].passed) ok++;});
-            const c=document.createElement('div'); c.style="background: rgba(255,255,255,0.7); border:1px solid var(--border-ink); padding:20px; cursor:pointer; color: var(--color-text); transition: 0.2s;";
-            c.innerHTML=`<b style="color: var(--color-primary); font-size: 1.1em;">${u.nom} ${u.prenom}</b><br><br>Réussite : ${ok}/4`;
+        const g = document.getElementById('profiles-grid');
+        g.innerHTML = "";
+        if (database.length === 0) {
+            g.innerHTML = '<p style="grid-column:1/-1; text-align:center; color: var(--color-text-light); font-family: var(--font-tech); padding: 30px;">Aucun agent enregistré.</p>';
+            return;
+        }
+        database.forEach(u => {
+            let ok = 0;
+            ['e1','e2','e3','e4'].forEach(k => { if(u.trials[k].passed) ok++; });
+            const c = document.createElement('div');
+            c.style = "background: rgba(255,255,255,0.7); border:1px solid var(--border-ink); padding:20px; cursor:pointer; color: var(--color-text); transition: 0.2s;";
+            c.innerHTML = `<b style="color: var(--color-primary); font-size: 1.1em;">${u.nom} ${u.prenom}</b><br><br>Réussite : ${ok}/4`;
             c.onmouseover = () => { c.style.background = "#fff"; c.style.transform = "translateY(-2px)"; };
-            c.onmouseout = () => { c.style.background = "rgba(255,255,255,0.7)"; c.style.transform = "translateY(0)"; };
-            c.onclick=()=>{
-                document.getElementById('modal-name').innerText=`Agent : ${u.nom} ${u.prenom}`;
+            c.onmouseout  = () => { c.style.background = "rgba(255,255,255,0.7)"; c.style.transform = "translateY(0)"; };
+            c.onclick = () => {
+                currentModalUserId = u.id;
+                document.getElementById('modal-name').innerText = `Agent : ${u.nom} ${u.prenom}`;
                 let html = `Note totale : <strong>${ok}/4</strong><br><br>`;
-                ['e1','e2','e3','e4'].forEach(k=>{
+                ['e1','e2','e3','e4'].forEach(k => {
                     let status = "Pas encore fait";
                     if (u.trials[k].completed) {
-                        status = u.trials[k].passed ? '<span style="color: var(--color-success)">Gagné</span>' : '<span style="color: var(--color-error)">Perdu</span>';
+                        status = u.trials[k].passed
+                            ? '<span style="color: var(--color-success)">Gagné</span>'
+                            : '<span style="color: var(--color-error)">Perdu</span>';
                     }
-                   html += `Jeu ${k.toUpperCase()} : ${status}<br>`; 
+                    html += `Jeu ${k.toUpperCase()} : ${status}<br>`;
                 });
                 document.getElementById('modal-stats-container').innerHTML = html;
                 document.getElementById('profile-modal').classList.add('active');
@@ -738,4 +793,4 @@
     }
 </script>
 </body>
-</html>  
+</html>
