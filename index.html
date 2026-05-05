@@ -135,7 +135,7 @@
 <button id="btn-rules-floating" class="hidden" onclick="showRulesModal()">Les Règles</button>
 
 <div class="scroll-container" id="main-container">
-    <img src="img/police.png" alt="Sceau Police" class="logo-police" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Konoha_Symbol.svg/120px-Konoha_Symbol.svg.png'">
+    <img src="police.png" alt="Sceau Police" class="logo-police" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Konoha_Symbol.svg/120px-Konoha_Symbol.svg.png'">
     
     <h1>Police Secrète</h1>
 
@@ -179,7 +179,7 @@
     <div id="epreuve1" class="hidden">
         <button class="btn-secondary btn-back" onclick="abortTrial()">&larr; Retour</button>
         <h2>Déchiffrer le Message</h2>
-        <img src="img/parchemins.png" alt="Parchemins" class="trial-img" onerror="this.style.display='none'">
+        <img src="parchemins.png" alt="Parchemins" class="trial-img" onerror="this.style.display='none'">
         <p>Un bout de papier a été trouvé par terre. Trouvez le mot caché en utilisant l'indice.</p>
         <div class="flex-container">
             <div class="col">
@@ -205,7 +205,7 @@
     <div id="epreuve2" class="hidden">
         <button class="btn-secondary btn-back" onclick="abortTrial()">&larr; Retour</button>
         <h2>Le Vol des Archives</h2>
-        <img src="img/interrogatoire.png" alt="Salle d'interrogatoire" class="trial-img" onerror="this.style.display='none'">
+        <img src="interrogatoire.png" alt="Salle d'interrogatoire" class="trial-img" onerror="this.style.display='none'">
         <p>Ce que l'on sait : La porte a été cassée cette nuit. On a entendu un grand bruit, puis beaucoup de fumée blanche ou de vapeur. Personne n'a vu de lumière.</p>
         
         <div style="display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; flex-wrap: wrap;">
@@ -258,7 +258,7 @@
     <div id="epreuve4" class="hidden">
         <button class="btn-secondary btn-back" onclick="abortTrial()">&larr; Retour</button>
         <h2>Jeu de Rôle</h2>
-        <img src="img/miseensituation.jpg" alt="Dans la rue" class="trial-img" onerror="this.style.display='none'">
+        <img src="miseensituation.jpg" alt="Dans la rue" class="trial-img" onerror="this.style.display='none'">
         <div class="stats-bar">Partie : <span id="e4-step-counter">1 / 3</span></div>
         <div id="e4-situation-container" style="background: rgba(255,255,255,0.6); padding: 30px; border: 1px solid var(--border-ink);">
             <h3 id="e4-sit-title" style="border-bottom: 1px solid #d1c8b8; padding-bottom: 10px;">Titre</h3>
@@ -448,9 +448,9 @@
 
     /* --- E2 : INVESTIGATION --- */
     const D = { 
-        'grand-mere': { nom:"La dame", img: "img/mamie.png", t:"J'ai entendu un gros boum, puis un bruit de vapeur comme une marmite. Il n'y avait pas de lumière, la rue était toute noire.", opts:[] }, 
-        'genin': { nom:"Le jeune", img: "img/genin.png", t:"Ce n'est pas moi ! Mon bras droit est bloqué par le docteur. Je ne peux pas faire de magie ninja !", opts:[] }, 
-        'jonin': { nom:"Le ninja fort", img: "img/jonin.png", t:"J'ai vu le jeune taper dans la porte avec ses pieds. Ensuite, j'ai vu de très grandes flammes éclairer toute la rue.", opts:[] } 
+        'grand-mere': { nom:"La dame", img: "mamie.png", t:"J'ai entendu un gros boum, puis un bruit de vapeur comme une marmite. Il n'y avait pas de lumière, la rue était toute noire.", opts:[] }, 
+        'genin': { nom:"Le jeune", img: "genin.png", t:"Ce n'est pas moi ! Mon bras droit est bloqué par le docteur. Je ne peux pas faire de magie ninja !", opts:[] }, 
+        'jonin': { nom:"Le ninja fort", img: "jonin.png", t:"J'ai vu le jeune taper dans la porte avec ses pieds. Ensuite, j'ai vu de très grandes flammes éclairer toute la rue.", opts:[] } 
     };
     let currentSuspectE2 = null;
 
