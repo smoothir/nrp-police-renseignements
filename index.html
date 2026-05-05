@@ -343,22 +343,63 @@
     function closeRulesModal() { document.getElementById('rules-modal').classList.remove('active'); }
     function closeAdminModal() { document.getElementById('profile-modal').classList.remove('active'); }
 
-    /* --- BASE DE DONNÉES --- */
-    const DB_KEY = 'konohaPoliceRens_v10';
-    let database = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-    let currentUser = null; 
+    /* --- BASE DE DONNÉES EN LIGNE (GOOGLE SHEETS) --- */
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBALly63LwXZfwGGht0-3dS-pohFitWeBkvOC8lBF_D7-5ovmZVONa7K4jpvBv8BYhQA/exec"; // <-- METS TON URL ICI
+    let database = [];
+    let currentUser = null; 
 
-    function saveDatabase() {
-        if (currentUser) {
-            const index = database.findIndex(u => u.id === currentUser.id);
-            if (index !== -1) database[index] = currentUser; else database.push(currentUser);
-        }
-        localStorage.setItem(DB_KEY, JSON.stringify(database));
-    }
-    function clearDatabase() {
-        playSound('error');
-        if(confirm("Êtes-vous sûr de vouloir effacer tous les résultats ?")) { database = []; localStorage.removeItem(DB_KEY); document.getElementById('profiles-grid').innerHTML = ""; }
-    }
+    // Au chargement de la page, on récupère les données du serveur
+    window.onload = async function() {
+        try {
+            const response = await fetch(SCRIPT_URL);
+            database = await response.json();
+            console.log("Base de données chargée !", database);
+        } catch(e) {
+            console.error("Erreur de connexion aux archives", e);
+        }
+    };
+
+    async function saveDatabase() {
+        if (currentUser) {
+            // Met à jour localement pour que l'affichage soit instantané
+            const index = database.findIndex(u => u.id === currentUser.id);
+            if (index !== -1) database[index] = currentUser; else database.push(currentUser);
+            
+            // Envoie en arrière-plan vers Google Sheets
+            fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: "save", user: currentUser })
+            });
+        }
+    }
+
+    async function clearDatabase() {
+        playSound('error');
+        if(confirm("Êtes-vous sûr de vouloir effacer TOUS les résultats ?")) { 
+            database = []; 
+            document.getElementById('profiles-grid').innerHTML = "";
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: "clear" })
+            });
+        }
+    }
+
+    async function deleteProfile(id) {
+        playSound('error');
+        if(confirm("Êtes-vous sûr de vouloir supprimer définitivement le dossier de cet agent ?")) {
+            database = database.filter(u => u.id !== id);
+            closeAdminModal();
+            renderAdmin();
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ action: "delete", id: id })
+            });
+        }
+    }
 
     /* --- NAVIGATION --- */
     function showView(viewId) {
