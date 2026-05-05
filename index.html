@@ -371,13 +371,13 @@
 
     /* --- Fetch POST avec Content-Type text/plain (évite le preflight CORS) --- */
     async function postToSheet(payload) {
-        return fetch(SCRIPT_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(payload)
-        });
-    }
+    return fetch(SCRIPT_URL, {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+    });
+}
 
     /* Chargement initial au démarrage de la page */
     window.onload = async function() {
