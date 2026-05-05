@@ -351,33 +351,40 @@
     function closeAdminModal() { document.getElementById('profile-modal').classList.remove('active'); currentModalUserId = null; }
 
     /* =========================================================
-       BASE DE DONNÉES — Google Sheets via Apps Script
-       IMPORTANT : remplace SCRIPT_URL par ta propre URL de déploiement
+       BASE DE DONNÉES — JSONBin.io
     ========================================================= */
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwReX2zrE97hSyNTkPWEdfY_Q-4JifuMut77l69yQr1nEjjPSBVpVFXw8POy871k3bdYA/exec";
+    const BIN_ID  = "69f9c9c436566621a829096d";
+    const BIN_KEY = "$2a$10$OfVR66PRoTm2oA4eP39rFukb/1TD/ihBUmO1SDo5Ai.vcee7Mp7WW";
+    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
     let database = [];
     let currentUser = null;
     let currentModalUserId = null;
 
-    /* --- Fetch GET avec gestion CORS/redirect --- */
+    /* --- Lire la base --- */
     async function fetchDatabase() {
-    const response = await fetch(SCRIPT_URL, {
-        credentials: 'omit'
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
-}
+        const res = await fetch(BIN_URL + '/latest', {
+            headers: {
+                'X-Master-Key': BIN_KEY,
+                'X-Bin-Meta': 'false'
+            }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        return Array.isArray(json.agents) ? json.agents : [];
+    }
 
-    /* --- Fetch POST avec Content-Type text/plain (évite le preflight CORS) --- */
-    async function postToSheet(payload) {
-    return fetch(SCRIPT_URL, {
-        method: 'POST',
-        credentials: 'omit',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-    });
-}
+    /* --- Écrire toute la base --- */
+    async function pushDatabase() {
+        await fetch(BIN_URL, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': BIN_KEY
+            },
+            body: JSON.stringify({ agents: database })
+        });
+    }
 
     /* Chargement initial au démarrage de la page */
     window.onload = async function() {
@@ -385,7 +392,7 @@
             database = await fetchDatabase();
             console.log("Base de données chargée !", database);
         } catch(e) {
-            console.warn("Chargement initial échoué (sera rechargé à la connexion admin) :", e);
+            console.warn("Chargement initial échoué :", e);
         }
     };
 
@@ -393,11 +400,7 @@
         if (!currentUser) return;
         const index = database.findIndex(u => u.id === currentUser.id);
         if (index !== -1) database[index] = currentUser; else database.push(currentUser);
-        try {
-            await postToSheet({ action: "save", user: currentUser });
-        } catch(e) {
-            console.error("Erreur sauvegarde :", e);
-        }
+        try { await pushDatabase(); } catch(e) { console.error("Erreur save :", e); }
     }
 
     async function clearDatabase() {
@@ -405,9 +408,7 @@
         if(confirm("Êtes-vous sûr de vouloir effacer TOUS les résultats ?")) {
             database = [];
             document.getElementById('profiles-grid').innerHTML = "";
-            try {
-                await postToSheet({ action: "clear" });
-            } catch(e) { console.error("Erreur clear :", e); }
+            try { await pushDatabase(); } catch(e) { console.error("Erreur clear :", e); }
         }
     }
 
@@ -417,9 +418,7 @@
             database = database.filter(u => u.id !== id);
             closeAdminModal();
             renderAdmin();
-            try {
-                await postToSheet({ action: "delete", id: id });
-            } catch(e) { console.error("Erreur delete :", e); }
+            try { await pushDatabase(); } catch(e) { console.error("Erreur delete :", e); }
         }
     }
 
