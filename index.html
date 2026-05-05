@@ -362,14 +362,12 @@
 
     /* --- Fetch GET avec gestion CORS/redirect --- */
     async function fetchDatabase() {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'GET',
-            redirect: 'follow',
-            mode: 'cors'
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.json();
-    }
+    const response = await fetch(SCRIPT_URL, {
+        credentials: 'omit'
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+}
 
     /* --- Fetch POST avec Content-Type text/plain (évite le preflight CORS) --- */
     async function postToSheet(payload) {
